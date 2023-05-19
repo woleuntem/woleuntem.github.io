@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>WTB Time Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Helvetica Neue", "Arial", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 10px;
+    }
+
+    h1 {
+      font-size: 1.2rem;
+      margin: 0;
+      padding-bottom: 10px;
+    }
+
+    #players {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .player {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .selected {
+      flex: 0.1;
+    }
+
+    .player-name {
+      flex: 0.5;
+      text-align: left;
+    }
+
+    .timer {
+      flex: 0.3;
+      text-align: left;
+    }
+
+    .controls {
+      flex: 0.1;
+      display: flex;
+      gap: 5px;
+    }
+
+    .total-time {
+      flex: 0.1;
+      font-weight: bold;
+    }
+
+    .game-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .game-buttons button {
+      padding: 10px 20px;
+    }
+  </style>
+
+
+</head>
+
+<body>
+  <h1>Tournament Time Tracker</h1>
+  <template id="player-template">
+    <div class="player">
+      <div class="selected">
+        <input type="checkbox">
+      </div>
+      <div class="player-name"></div>
+      <div class="timer"></div>
+      <div class="controls">
+        <button>&#9205;</button>
+        <button>&#9208;</button>
+      </div>
+      <div class="total-time">0 m 0 s</div>
+    </div>
+  </template>
+
+  <div id="players"></div>
+
+  <div class="game-buttons">
+    <button onclick="startGame()">Start Game</button>
+    <button onclick="pauseGame()">Pause Game</button>
+    <button onclick="unpauseGame()">Unpause Game</button>
+    <button onclick="endGame()">End Game</button>
+  </div>
+
+  <script>
+    const players = ['Archie', 'Constance', 'Dexter', 'Freddie', 'James', 'Max', 'Noah', 'Pheonix', 'Rico', 'Rudy', 'Ted', 'Toby', 'Youssef'];
+    const gameStatus = { inProgress: false, isPaused: false };
+
+    players.forEach((player, index) => {
+      const template = document.getElementById('player-template');
+      const clone = template.content.cloneNode(true);
+      clone.firstElementChild.id = `container-${index}`;
+      const playerElem = clone.querySelector('.player-name');
+      playerElem.id = `player-${index}`;
+      playerElem.textContent = player;
+      const timerElem = clone.querySelector('.timer');
+      timerElem.id = `timer-${index}`;
+      timerElem.textContent = '0 m 0 s';
+      const buttons = clone.querySelectorAll('button');
+      buttons[0].addEventListener('click', () => startTimer(index));
+      buttons[1].addEventListener('click', () => pauseTimer(index));
+      document.getElementById('players').appendChild(clone);
+    });
+
+    const timers = players.map(() => ({
+      paused: null,
+      id: null,
+      startTime: null,
+      elapsedTime: 0
+    }));
+
+    const starters = document.getElementById('players').querySelectorAll('input[type="checkbox"]');
+    starters.forEach((starter, index) => {
+      starter.addEventListener('change', (event) => {
+        if (gameStatus.inProgress === true) {
+          starter.checked = false;
+          return false;
+        }
+        const playerElem = document.getElementById(`player-${index}`);
+        playerElem.style.backgroundColor = starter.checked ? '#2ECC71' : '';
+      });
+    });
+
+    const startTimer = (playerIndex) => {
+      const timer = timers[playerIndex];
+
+      if (timer.paused === false || !gameStatus.inProgress) {
+        return;
+      }
+      const startTime = new Date().getTime();
+      timer.startTime = startTime;
+      timer.paused = false;
+      const playerElem = document.getElementById(`player-${playerIndex}`);
+      playerElem.style.backgroundColor = '#2ECC71';
+      const timerElem = document.getElementById(`timer-${playerIndex}`);
+
+      if (gameStatus.isPaused) {
+        return;
+      }
+
+      timer.id = setInterval(function () {
+        const currentTime = new Date().getTime();
+        const elapsedTime = currentTime - startTime + timer.elapsedTime;
+        const minutes = Math.floor(elapsedTime / 60000);
+        const seconds = Math.floor((elapsedTime % 60000) / 1000);
+        timerElem.textContent = `${minutes} m ${seconds} s`;
+
+      }, 1000);
+    };
+
+    const pauseTimer = (playerIndex) => {
+      if (!gameStatus.inProgress) {
+        return;
+      }
+      const timer = timers[playerIndex];
+      timer.paused = true;
+      const playerElem = document.getElementById(`player-${playerIndex}`);
+      playerElem.style.backgroundColor = '#EC7063';
+      clearInterval(timer.id);
+
+      if (!gameStatus.isPaused) {
+        const currentTime = new Date().getTime();
+        timer.elapsedTime = currentTime - timer.startTime + timer.elapsedTime;
+      }
+    };
+
+    const startGame = () => {
+      if (gameStatus.inProgress) {
+        return;
+      }
+      gameStatus.inProgress = true;
+      timers.forEach((timer, index) => {
+        const container = document.getElementById(`container-${index}`);
+        const checkbox = container.querySelector('input[type="checkbox"]');
+        const playerElem = document.getElementById(`player-${index}`);
+        const timerElem = document.getElementById(`timer-${index}`);
+        timerElem.textContent = `0 m 0 s`;
+
+        if (checkbox.checked) {
+          startTimer(index);
+          checkbox.checked = false;
+          playerElem.style.backgroundColor = '#2ECC71';
+        } else {
+          playerElem.style.backgroundColor = '#EC7063';
+        }
+      });
+    };
+
+    const pauseGame = () => {
+      if (!gameStatus.inProgress || gameStatus.isPaused) {
+        return;
+      }
+      gameStatus.isPaused = true;
+      timers.forEach((timer) => {
+        if (timer.paused === false) {
+          const currentTime = new Date().getTime();
+          timer.elapsedTime = currentTime - timer.startTime + timer.elapsedTime;
+          clearInterval(timer.id);
+        }
+      });
+    };
+
+    const unpauseGame = () => {
+      if (!gameStatus.inProgress || !gameStatus.isPaused) {
+        return;
+      }
+      gameStatus.isPaused = false;
+      timers.forEach((timer, index) => {
+        if (timer.paused === false) {
+          timer.paused = true;
+          startTimer(index);
+        }
+      });
+    };
+
+    const endGame = () => {
+      if (gameStatus.inProgress === false) {
+        return;
+      }
+      gameStatus.inProgress = false;
+      timers.forEach((timer, index) => {
+        clearInterval(timer.id);
+        timer.paused = null;
+        timer.id = null;
+        timer.startTime = null;
+        timer.elapsedTime = 0;
+        const playerElem = document.getElementById(`player-${index}`);
+        playerElem.style.backgroundColor = '';
+        //updatePlayerTime(i);
+      });
+    };
+
+    // Function to update the time display for a player
+    function updatePlayerTime(playerNumber) {
+      var playerElement = document.getElementById('player' + playerNumber);
+      var timer = timers[playerNumber];
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+
+      var startTime = new Date().getTime();
+      var currentTime = new Date().getTime();
+      var elapsedTime = currentTime - startTime;
+      var minutes = Math.floor(elapsedTime / 60000);
+      var seconds = Math.floor((elapsedTime % 60000) / 1000);
+
+      playerElement.textContent = 'Player ' + playerNumber + ': ' + minutes + 'm ' + seconds + 's';
+    }
+  </script>
+</body>
+
+</html>
