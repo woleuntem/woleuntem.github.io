@@ -88,7 +88,7 @@
         <button class="material-icons">play_circle_outline</button>
         <button class="material-icons">pause_circle_outline</button>
       </div>
-      <div class="total-time">0 m 0 s</div>
+      <div class="total-time">00:00</div>
     </div>
   </template>
 
@@ -114,7 +114,7 @@
       playerElem.textContent = player;
       const timerElem = clone.querySelector('.timer');
       timerElem.id = `timer-${index}`;
-      timerElem.textContent = '0 m 0 s';
+      timerElem.textContent = '00:00';
 
       const totalElem = clone.querySelector('.total-time');
       totalElem.id = `total-${index}`;
@@ -122,7 +122,7 @@
       if (totalValue) {
         const minutes = Math.floor(totalValue / 60000);
         const seconds = Math.floor((totalValue % 60000) / 1000);
-        totalElem.textContent = `${minutes} m ${seconds} s`;
+        totalElem.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
       }
 
       const buttons = clone.querySelectorAll('button');
@@ -173,7 +173,7 @@
         timer.totalTime = elapsedTime;
         const minutes = Math.floor(elapsedTime / 60000);
         const seconds = Math.floor((elapsedTime % 60000) / 1000);
-        timerElem.textContent = `${minutes} m ${seconds} s`;
+        timerElem.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
       }, 1000);
     };
@@ -204,7 +204,7 @@
         const checkbox = container.querySelector('input[type="checkbox"]');
         const playerElem = document.getElementById(`player-${index}`);
         const timerElem = document.getElementById(`timer-${index}`);
-        timerElem.textContent = `0 m 0 s`;
+        timerElem.textContent = `00:00`;
 
         if (checkbox.checked) {
           startTimer(index);
@@ -271,7 +271,7 @@
       const minutes = Math.floor(total / 60000);
       const seconds = Math.floor((total % 60000) / 1000);
       const totalElem = document.getElementById(`total-${index}`);
-      totalElem.textContent = `${minutes} m ${seconds} s`;
+      totalElem.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     };
   </script>
 </body>
