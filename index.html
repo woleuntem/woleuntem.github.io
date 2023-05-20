@@ -179,10 +179,11 @@
     };
 
     const pauseTimer = (playerIndex) => {
-      if (!gameStatus.inProgress) {
+      const timer = timers[playerIndex];
+
+      if (timer.paused === null || timer.paused === true || !gameStatus.inProgress) {
         return;
       }
-      const timer = timers[playerIndex];
       timer.paused = true;
       const playerElem = document.getElementById(`player-${playerIndex}`);
       playerElem.style.backgroundColor = '#EC7063';
